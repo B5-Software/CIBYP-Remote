@@ -7,6 +7,7 @@ class RemoteClient {
     fetchImpl = globalThis.fetch,
     socketFactory,
     onEvent = () => {},
+    channels,
   }) {
     const address = new URL(url);
     if (
@@ -29,6 +30,19 @@ class RemoteClient {
     this.closed = true;
     this.generation = 0;
     this.retry = 0;
+    this.channels = channels;
+    if (channels !== undefined) this.subscribe(channels);
+  }
+  subscribe(channels) {
+    if (
+      !Array.isArray(channels) ||
+      channels.length > 32 ||
+      channels.some((v) => typeof v !== 'string' || v.length > 100)
+    )
+      throw new Error('Invalid event subscription');
+    this.channels = [...channels];
+    if (this.socket?.readyState === 1)
+      this.socket.send(JSON.stringify({ type: 'subscribe', channels: this.channels }));
   }
   async call(method, params = {}, { id = globalThis.crypto.randomUUID(), signal } = {}) {
     const body = JSON.stringify({ jsonrpc: '2.0', id, method, params });
@@ -130,9 +144,13 @@ class RemoteClient {
   open() {
     if (this.closed || !this.socketFactory) return;
     const generation = ++this.generation;
-    const query = this.cursor
-      ? `?streamId=${encodeURIComponent(this.cursor.streamId)}&after=${this.cursor.sequence}`
-      : '';
+    const parameters = new URLSearchParams();
+    if (this.cursor) {
+      parameters.set('streamId', this.cursor.streamId);
+      parameters.set('after', this.cursor.sequence);
+    }
+    if (this.channels) parameters.set('channels', JSON.stringify(this.channels));
+    const query = parameters.size ? '?' + parameters : '';
     const socket = this.socketFactory(
       this.url.replace(/^http/, 'ws') + '/remote/v2/events' + query,
       this.token,

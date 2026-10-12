@@ -42,12 +42,14 @@ export class RemoteError extends Error {
   constructor(reason: string, message?: string, data?: object);
 }
 export class RemoteClient {
+  subscribe(channels: string[]): void;
   constructor(options: {
     url: string;
     token?: string;
     fetchImpl?: typeof fetch;
     socketFactory?: (url: string, token: string) => WebSocket;
     onEvent?: (event: RemoteEvent | { type: string; [key: string]: unknown }) => void;
+    channels?: string[];
   });
   call<T = Json>(
     method: string,
@@ -104,8 +106,22 @@ export class Operations {
 }
 export class ToolRegistry {
   describe(name: string): ToolManifest;
-  result(params: {resultId: string; offset?: number; limit?: number}, principal: Principal): {encoding: 'json'; resultId: string; sha256: string; offset: number; totalChars: number; text: string; nextOffset: number | null};
-  cancel(params: {targetOperationId: string}, principal: Principal): {cancelRequested: boolean; state?: string};
+  result(
+    params: { resultId: string; offset?: number; limit?: number },
+    principal: Principal,
+  ): {
+    encoding: 'json';
+    resultId: string;
+    sha256: string;
+    offset: number;
+    totalChars: number;
+    text: string;
+    nextOffset: number | null;
+  };
+  cancel(
+    params: { targetOperationId: string },
+    principal: Principal,
+  ): { cancelRequested: boolean; state?: string };
   constructor(options?: { events?: EventLog });
   register(
     manifest: ToolManifest,

@@ -35,13 +35,13 @@ Mini does not pretend desktop windows, VM, cameras, editor/LSP, or graphical fil
 
 Additional bounded reads and lifecycle calls:
 
-| Method | Permission | Behavior |
-| --- | --- | --- |
-| `session.message` | `sessions.read` | `messageIndex`, `offset`, `limit` (1–16384 characters), optional `sha256` guard; returns JSON text chunks, totalChars and nextOffset |
-| `tool.describe` | `tools.read` | Returns one named tool's current schema |
-| `tool.result` | `tools.invoke` | Reads a large tool result by resultId and offset, scoped to its caller; retained for ten minutes within an 8 MiB instance budget |
-| `tool.cancel` | `tools.invoke` | `targetOperationId` plus its own operationId; requests cancellation and never claims physical rollback |
-| `update.status` | `system.read` | Host update state |
+| Method                          | Permission       | Behavior                                                                                                                             |
+| ------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `session.message`               | `sessions.read`  | `messageIndex`, `offset`, `limit` (1–16384 characters), optional `sha256` guard; returns JSON text chunks, totalChars and nextOffset |
+| `tool.describe`                 | `tools.read`     | Returns one named tool's current schema                                                                                              |
+| `tool.result`                   | `tools.invoke`   | Reads a large tool result by resultId and offset, scoped to its caller; retained for ten minutes within an 8 MiB instance budget     |
+| `tool.cancel`                   | `tools.invoke`   | `targetOperationId` plus its own operationId; requests cancellation and never claims physical rollback                               |
+| `update.status`                 | `system.read`    | Host update state                                                                                                                    |
 | `update.check/download/install` | `updates.manage` | Mutations require operationId; install additionally requires `confirm: true`. Mini stages verified core and requires service restart |
 
 `session.messages` returns up to ten items per page. Large items contain messageIndex, a preview and `readMethod`; retrieve every character through `session.message`. A changed message returns REVISION_CONFLICT when its hash guard no longer matches. Large tool results return resultId and SHA-256; an expired or restarted result store returns RESYNC_REQUIRED. Neither condition authorizes repeating a hardware action. Both public and private settings patches require expectedRevision; the private method never echoes credential values.
