@@ -288,7 +288,10 @@ class ToolRegistry {
     }
   }
   attach(service) {
-    service.register('tool.list', 'tools.read', (p) => this.list(p));
+    service.register('tool.list', 'tools.read', (p) => {
+      const page = this.list(p);
+      return { ...page, items: page.items.map(({ inputSchema: _schema, ...summary }) => summary) };
+    });
     service.register('tool.describe', 'tools.read', (p) => this.describe(p.name));
     service.register('tool.result', 'tools.invoke', (p, c) => this.result(p, c));
     service.register('tool.cancel', 'tools.invoke', (p, c) => this.cancel(p, c), { write: true });

@@ -217,6 +217,24 @@ test("device credentials are hashed, revocable and reconnect replaces registrati
     policy: { tools: { read: { resources: ["gpio:1"] } } },
   });
   assert.ok(!JSON.stringify(gateway.list()).includes(deviceToken));
+  const service = new RemoteService();
+  gateway.attach(service);
+  const page = (
+    await service.handle(rpc("device.page", { limit: 1 }), principal)
+  ).result;
+  assert.equal(page.items[0].toolCount, 1);
+  assert.equal(page.items[0].policy, undefined);
+  assert.equal(page.nextOffset, null);
+  assert.deepEqual(
+    (await service.handle(rpc("device.get", { deviceId: "board" }), principal))
+      .result.policy.tools.read.resources,
+    ["gpio:1"],
+  );
+  assert.equal(
+    (await service.handle(rpc("device.page", { limit: 33 }), principal)).error
+      .data.reason,
+    "INVALID_PARAMS",
+  );
   const hello = Buffer.from(
     JSON.stringify(
       rpc("device.hello", {

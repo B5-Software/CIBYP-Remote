@@ -120,6 +120,37 @@ class DeviceGateway {
   }
   attach(service) {
     service.register("device.list", "devices.read", () => this.list());
+    service.register("device.page", "devices.read", (p) => {
+      const offset = p.offset ?? 0,
+        limit = p.limit ?? 20;
+      if (
+        !Number.isInteger(offset) ||
+        offset < 0 ||
+        !Number.isInteger(limit) ||
+        limit < 1 ||
+        limit > 32
+      )
+        throw new RemoteError("INVALID_PARAMS");
+      const all = this.list(),
+        items = all
+          .slice(offset, offset + limit)
+          .map(({ policy, ...value }) => ({
+            ...value,
+            toolCount: Object.keys(policy.tools || {}).length,
+          }));
+      return {
+        items,
+        total: all.length,
+        nextOffset:
+          offset + items.length < all.length ? offset + items.length : null,
+      };
+    });
+    service.register("device.get", "devices.read", (p) => {
+      const id = identifier(p.deviceId),
+        value = this.list().find((device) => device.id === id);
+      if (!value) throw new RemoteError("INVALID_PARAMS", "Unknown device");
+      return value;
+    });
     service.register(
       "device.provision",
       "devices.manage",

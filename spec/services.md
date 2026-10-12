@@ -45,3 +45,5 @@ Additional bounded reads and lifecycle calls:
 | `update.check/download/install` | `updates.manage` | Mutations require operationId; install additionally requires `confirm: true`. Mini stages verified core and requires service restart |
 
 `session.messages` returns up to ten items per page. Large items contain messageIndex, a preview and `readMethod`; retrieve every character through `session.message`. A changed message returns REVISION_CONFLICT when its hash guard no longer matches. Large tool results return resultId and SHA-256; an expired or restarted result store returns RESYNC_REQUIRED. Neither condition authorizes repeating a hardware action. Both public and private settings patches require expectedRevision; the private method never echoes credential values.
+
+`device.page({offset,limit})` returns up to 32 summaries (`items`, `total`, `nextOffset`) without policies. `device.get({deviceId})` reads one full resource policy. `device.list` remains the initial alpha compatibility call. `tool.list` omits `inputSchema`; use `tool.describe` when a schema is needed. This bounds discovery independently of large policies and schemas.

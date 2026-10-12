@@ -168,6 +168,19 @@ export class DeviceGateway {
   setPolicy(id: string, policy: object): object;
   revoke(id: string): object;
   close(): void;
+  attach(service: RemoteService): void;
+}
+export interface DeviceSummary {
+  id: string;
+  label: string;
+  online: boolean;
+  bootId: string | null;
+  toolCount: number;
+}
+export interface DevicePage {
+  items: DeviceSummary[];
+  total: number;
+  nextOffset: number | null;
 }
 export class Credentials {
   constructor(file?: string);
